@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <title>鄂大留言板</title>
+    <meta name="keywords" content="鄂大留言板">
+    <meta name="description" content="本表白墙献给最可爱的镜音双子！">
+
+
+    <!--ElementUI-->
+    <script src="./js/vue.min.js"></script>
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./elementui/index.css">
+    <!-- 引入组件库 -->
+    <script src="./elementui/index.js"></script>
+
+    <link rel="stylesheet" href="./mdui/css/mdui.min.css" />
+    <link rel="stylesheet" href="./css/main.css" />
+
+    <script src=".//mdui/js/mdui.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/jquery.pjax.js"></script>
+    <script src="./js/jquery.md5.js"></script>
+    <script src="./js/clipboard.min.js"></script>
+    <script src="./js/main.js"></script>
+    <!--VueJs-->
+    <script src="./js/axios.min.js"></script>
+
+</head>
+
+<body class="mdui-drawer-body-left mdui-bottom-nav-fixed mdui-appbar-with-toolbar mdui-theme-primary-pink mdui-theme-accent-pink mdui-theme-layout-auto mdui-loaded">
+
+<!--左侧-->
+
+    <div  class="mdui-drawer" id="main-drawer">
+
+
+        <div class="mdui-list " mdui-collapse="{accordion: true}" style="margin-bottom: 76px;">
+            <div class="mdui-list">
+                <div id="div1">
+                    <!--主页-->
+                    <a href="/" id="homePage" class="mdui-list-item mdui-ripple" style="border-radius: 16px;">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">home</i>
+                        <div class="mdui-list-item-content">主页</div>
+                    </a>
+                    <!--留言-->
+                    <a href="/submit_article.html" target="iframe"  onclick="inst.toggle();" class="mdui-list-item mdui-ripple " style="border-radius: 16px;">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">message</i>
+                        <div class="mdui-list-item-content">留言</div>
+                    </a>
+                    <!--恋爱榜-->
+                    <a href="/love.html" target="iframe"  onclick="inst.toggle();" class="mdui-list-item mdui-ripple " style="border-radius: 16px;">
+                        <i class="mdui-list-item-icon mdui-icon material-icons el-icon-trophy"></i>
+                        <div class="mdui-list-item-content">恋爱榜</div>
+                    </a>
+                    <HR align=center width="100%" color=#987cb9 SIZE=1>
+                    <!--GitHUB-->
+                    <a href="http://github.com/anyewl" target="_blank"  onclick="inst.toggle();" class="mdui-list-item mdui-ripple " style="border-radius: 16px;">
+                        <img class="mdui-list-item-icon mdui-icon material-icons" src="./img/github.png"></img>
+                        <div class="mdui-list-item-content">GitHub</div>
+                    </a>
+                    <!--Bilibili-->
+                    <a href="http://space.bilibili.com/474732440" target="_blank"  onclick="inst.toggle();" class="mdui-list-item mdui-ripple " style="border-radius: 16px;">
+                        <img class="mdui-list-item-icon mdui-icon material-icons" src="./img/bilibili.ico"></img>
+                        <div class="mdui-list-item-content">Bilibili</div>
+                    </a>
+                    <!--微信-->
+                    <a href="./img/wx.jpg" target="_blank"  onclick="inst.toggle();" class="mdui-list-item mdui-ripple " style="border-radius: 16px;">
+                        <img class="mdui-list-item-icon mdui-icon material-icons" src="./img/wx.png"></img>
+                        <div class="mdui-list-item-content">微信</div>
+                    </a>
+                    <!--QQ-->
+                    <a href="./img/qq.jpg" target="_blank"  onclick="inst.toggle();" class="mdui-list-item mdui-ripple " style="border-radius: 16px;">
+                        <img class="mdui-list-item-icon mdui-icon material-icons" src="./img/qq.png"></img>
+                        <div class="mdui-list-item-content">微信</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<div >
+    <!--头部-->
+    <header id="appbar" class="mdui-appbar mdui-appbar-fixed">
+
+        <div class="mdui-toolbar mdui-color-theme">
+            <span  class="mdui-btn mdui-btn-icon mdui-ripple mdui-ripple-white " onclick="inst.toggle();"><i class="mdui-icon material-icons">menu</i></span>
+            <a href="../" class="mdui-typo-headline ">鄂大留言板</a>
+
+            <div class="mdui-toolbar-spacer"></div>
+
+            <a target="_BLANK" href="https://space.bilibili.com/474732440" mdui-tooltip="{content: '作者讲课'}" class="mdui-btn mdui-btn-icon mdui-ripple mdui-ripple-white"><i class="mdui-icon material-icons">芸</i></a>
+        </div>
+    </header>
+    <!--Iframe内容-->
+    <div class="content-wrapper">
+        <iframe width="100%" id="iframe" name="iframe"	onload="SetIFrameHeight()"
+                frameborder="0" src="articles.html"></iframe>
+
+    </div>
+    <!--VueJS-->
+<script type="text/javascript">
+        new Vue({
+            el:"#div1",
+            data:{
+                notice:{
+                    title:"《相见欢·林花谢了春红》",
+                    content:"林花谢了春红，太匆匆。无奈朝来寒雨晚来风。"
+                }
+            }
+            ,
+            methods: {
+              openNotice() {
+                var _this = this;
+                this.$notify({
+                  title: _this.notice.title,
+                  message: _this.notice.content,
+                  type: 'success'
+                });
+              }
+            }
+            ,
+            created(){
+
+                    <!--执行通知-->
+                    this.openNotice();
+             }
+        });
+</script>
+<!--iframe控制JS-->
+<script type="text/javascript">
+     function SetIFrameHeight(){
+          var iframeid=document.getElementById("iframe"); //iframe id
+          if (document.getElementById){
+            iframeid.height =document.documentElement.clientHeight;
+          }
+     }
+</script>
+<!--网站适应JS-->
+<script>
+    $(document).pjax('a', '#pjax-container', {
+        'timeout': false
+    })
+    $("#isLoading").hide(200)
+    var inst = new mdui.Drawer('#main-drawer');
+    $(document).on('pjax:send', function() {
+        if (isMobile()) {
+            inst.close();
+        }
+        $("#pjax-container").hide(200)
+        $("#isLoading").show(200)
+
+    })
+    $(document).on('pjax:complete', function() {
+        setTimeout(function() {
+            $("#isLoading").hide(200)
+        }, 2000);
+        $("#pjax-container").show(200)
+    })
+
+    function isMobile() {
+        var userAgentInfo = navigator.userAgent;
+        var mobileAgents = ["Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod"];
+        var mobile_flag = false;
+        for (var v = 0; v < mobileAgents.length; v++) {
+            if (userAgentInfo.indexOf(mobileAgents[v]) > 0) {
+                mobile_flag = true;
+                break;
+            }
+        }
+        var screen_width = window.screen.width;
+        var screen_height = window.screen.height;
+        if (screen_width < 500 && screen_height < 800) {
+            mobile_flag = true;
+        }
+        return mobile_flag;
+    }
+</script>
+
+
+</body>
+</html>

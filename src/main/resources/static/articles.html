@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <title>鄂大留言板</title>
+    <meta name="keywords" content="鄂大留言板">
+    <meta name="description" content="李滋芸">
+
+
+    <!--ElementUI-->
+    <script src="./js/vue.min.js"></script>
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./elementui/index.css">
+    <!-- 引入组件库 -->
+    <script src="./elementui/index.js"></script>
+    <link rel="stylesheet" href="./mdui/css/mdui.min.css" />
+    <link rel="stylesheet" href="./css/main.css" />
+
+    <script src=".//mdui/js/mdui.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/jquery.pjax.js"></script>
+    <script src="./js/jquery.md5.js"></script>
+    <script src="./js/clipboard.min.js"></script>
+    <script src="./js/main.js"></script>
+    <!--VueJs-->
+    <script src="./js/axios.min.js"></script>
+</head>
+<body>
+
+
+<div id="div1">
+    <!--顶部搜索-->
+    <el-select style="width:100%"   v-model="tagId"  placeholder="搜索标签">
+        <el-option
+                v-for="t in tags"
+                :key="t.id"
+                :label="t.label"
+                :value="t.id"
+                :disabled="t.disabled"
+                :type="t.type"
+        >
+        </el-option>
+    </el-select>
+    </br>
+    </br>
+    <!--主体-->
+    <div >
+        <div  v-for="item in articles"  >
+            <div   class="mdui-card mdui-hoverable" style="border-radius: 16px">
+                <div class="mdui-card-header">
+                    <!--头像-->
+                    <div class="mdui-card-header-avatar" v-for="t in tags" v-if="t.id==item.tagId">
+                        <el-tag  effect="plain" :type="t.type"  >{{t.label}}</el-tag>
+                    </div>
+
+                    <!--名称-->
+                    <div class="mdui-card-header-title"  > {{item.name}}  </div>
+                    <!--时间-->
+                    <div class="mdui-card-header-subtitle" > {{item.time}} </div>
+                </div>
+                <!--图片-->
+                <div class="mdui-card-media">
+                    <!--自定义图片-->
+                    <div v-if=" item.imgSrc != '' && item.imgSrc != 'null'  && item.imgSrc != null ">
+                        <img style="max-height: 2000px" :src="item.imgSrc"     />
+                    </div>
+
+                </div>
+
+
+                <!--内容-->
+                <div  class="mdui-card-content">
+                    <pre>{{item.content}}</pre>
+                </div>
+                <div class="mdui-card-actions">
+
+                    <!--联系方式-->
+                    <font color="grey"> {{item.contact}} </font>
+
+                    <a target="iframe"
+                       v-bind:href="'/comment.html?id='+item.id" style="display:block;text-align:right;">
+
+                        <el-badge style="text-align:right;margin-right:10px"  :value="item.comCount" class="item" type="primary">
+                            <el-button size="small">评论</el-button>
+                        </el-badge>
+                    </a>
+
+                </div>
+            </div>
+            <br /><br />
+        </div>
+
+    </div>
+    <!--底部-->
+        <el-row style="text-align:center">
+            <el-button-group style="text-align:right">
+                <el-button @click="nextPage(-1)" type="primary" icon="el-icon-arrow-left">上一页</el-button>
+                <el-button @click="nextPage(1)" type="primary">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
+            </el-button-group>
+
+        </el-row>
+    </div>
+
+</div>
+
+
+<script type="text/javascript">
+        new Vue({
+            el:"#div1",
+            data:{
+                  articles : [],
+                  tags: [{id:"1",label:"交友"}],
+                  page: 1,
+                  tagId: ""
+            },
+            methods: {
+                nextPage(offer){
+                    var target = this.page+offer
+                    if(target < 1){
+                        alert("无上一页");
+                        return;
+                    }
+                    this.page = target;
+                }
+            },
+            <!--监听器-->
+            watch:{
+                <!--标签状态-->
+                "tagId":function(){
+                    var _this = this;
+                    <!--从第一页开始-->
+                    axios.get("/article/findByPage.do?page=1"+"&tagId="+this.tagId).then(function (response) {
+                            _this.articles = response.data.data;
+                    }).catch(function (err) {
+                        alert(err)
+                    });
+                 },
+                 <!--页-->
+                 "page":function(){
+                    var _this = this;
+                    axios.get("/article/findByPage.do?page="+this.page+"&tagId="+this.tagId).then(function (response) {
+                        if(response.data.data.length == 0){
+                            alert("无下一页!");
+                        }else{
+                            _this.articles = response.data.data;
+                        }
+                    }).catch(function (err) {
+                        alert(err)
+                    });
+                 }
+            }
+            ,
+            created(){
+                    var _this = this;
+                    <!--所有标签-->
+                    axios.get("/tag/findAll.do").then(function (response) {
+                        _this.tags = response.data.data;
+                        for(var i = 0 ; i < _this.tags.length ; i++ ){
+                            var tag = _this.tags[i];
+                            if(tag["id"]==1024){
+                                _this.tags[i]["type"] = "danger";
+                            }else{
+                                _this.tags[i]["type"] = "";
+                            }
+                        }
+                    }).catch(function (err) {
+                        alert(err)
+                    });
+
+                    var str = location.href;
+                    var index = str.indexOf("?");
+                    var tagId = "";
+                    // tagId=
+                    if(index != -1){
+                        tagId = str.substring(index+7);
+                    }
+                    <!--分页查询-->
+                    axios.get("/article/findByPage.do?page=1&tagId="+tagId).then(function (response) {
+                        _this.articles = response.data.data;
+                    }).catch(function (err) {
+                        alert(err)
+                    });
+
+             }
+        });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>商品管理</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="./plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./plugins/adminLTE/css/AdminLTE.css">
+    <link rel="stylesheet" href="./plugins/adminLTE/css/skins/_all-skins.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+	<script src="./plugins/jQuery/jquery-2.2.3.min.js"></script>
+    <script src="./plugins/bootstrap/js/bootstrap.min.js"></script>
+	<script   src="./js/vuejs-2.5.16.js" >  </script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<script src="https://unpkg.com/vue-router@3.5.1/dist/vue-router.js"></script>
+ 
+</head>
+
+<body class="hold-transition skin-red sidebar-mini" >
+  <!-- .box-body -->
+                
+                    <div class="box-header with-border">
+                        <h3 class="box-title">商品管理</h3>
+                    </div>
+
+                    <div class="box-body" id="dataList">
+
+                        <!-- 数据表格 -->
+                        <div class="table-box">
+
+                            <!--工具栏-->
+                            <div class="pull-left">
+                                <div class="form-group form-inline">
+                                    <div class="btn-group">
+                                        <button @click="deleteByIds()" type="button" class="btn btn-default" title="删除" ><i class="fa fa-trash-o"></i> 多选删除</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!--工具栏/-->
+
+			                  <!--数据列表-->
+			                  <table style="table-layout:fixed;word-break:break-all;"  class="table table-bordered table-striped table-hover dataTable">
+			                      <thead>
+			                          <tr>
+			                              <th class="" style="padding-right:0px">
+			                                  <input v-model="checkAll" @change="changeAllChecked($event)" id="selall" type="checkbox" class="icheckbox_square-blue">
+			                              </th> 
+										  <th class="sorting_asc">图片</th>
+										  <th class="sorting"></th>
+			                          </tr>
+			                      </thead>
+			                      <tbody >
+			                          <tr v-for="p in pictures">
+										  <!--双向绑定：删除-->
+			                              <td style="max-weith: 10px"><input :value="p.id" v-model="deleteIds"    type="checkbox"></td>
+				                          <td><img style="max-height: 100px;max-weith: 100px" :src="p.data"     /></td>
+		                                  <td class="text-center" >
+												  <button  @click="deleteById(p.id)" type="button" class="btn bg-olive btn-xs">删除</button>
+		                                  </td>
+			                          </tr>
+			                      </tbody>
+			                  </table>
+			                  <!--数据列表/-->
+
+
+                        </div>
+                        <!-- 数据表格 /-->
+                        
+                        
+                     </div>
+                    <!-- /.box-body -->
+
+
+
+  <script>
+    new Vue({
+        el:'#dataList', //表示当前vue对象接管了div区域
+        data:{
+            pictures: [],
+            deleteIds: [],
+            checkAll: false,
+            page: 1
+        },
+
+        methods:{
+        	<!--全选-->
+            changeAllChecked:function(event){
+				this.deleteIds = [];
+                if (event.target.checked == true) {
+					for(var i = 0 ; i < this.pictures.length ; i++){
+            			this.deleteIds.push(this.pictures[i].id);
+					}
+                }
+            },
+            <!--查询所有-->
+            findByPage:function(){
+				var _this = this;
+				axios.get("/picture/findByPage.do").then(function (response) {
+					_this.pictures = response.data.data;
+					window.location.href = 'pictures.html';
+				}).catch(function (err) {
+					console.log(err);
+				});
+            },
+           	<!--删除请求-->
+           	deleteByIds:function(){
+				var _this = this;
+				axios.post("/admin/picture/deleteIds.do", _this.deleteIds).then(function (response) {
+					alert(response.data.message)
+					window.location.href = 'pictures.html';
+				}).catch(function (err) {
+
+				});
+           	},
+            deleteById:function(id){
+				var _this = this;
+				_this.deleteIds.push(id);
+				axios.post("/admin/picture/deleteIds.do", _this.deleteIds).then(function (response) {
+					alert(response.data.message)
+				}).catch(function (err) {
+
+				});
+           	}
+        },
+        <!--监听器-->
+        watch:{
+        	<!--全选状态-->
+        	"deleteIds":function(){
+        		if(this.pictures.length == this.deleteIds.length){
+        			this.checkAll = true;
+        		}else{
+        			this.checkAll = false;
+        		}
+        	}
+        },
+        <!--页面加载时: 发送请求-->
+        created(){
+            var _this = this;
+            axios.get("/admin/picture/findByPage.do", {
+                params:{
+                    "page":1
+                }
+            }).then(function (response) {
+                _this.pictures = response.data.data;
+            }).catch(function (err) {
+                alert(err);
+            });
+		}
+    });
+</script>
+		
+</body>
+
+
+
+</html>

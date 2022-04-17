@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <title>鄂大留言板</title>
+    <meta name="keywords" content="鄂大留言板">
+    <meta name="description" content="李滋芸！">
+
+    <!--ElementUI-->
+    <script src="./js/vue.min.js"></script>
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./elementui/index.css">
+    <!-- 引入组件库 -->
+    <script src="./elementui/index.js"></script>
+    <link rel="stylesheet" href="./mdui/css/mdui.min.css" />
+    <link rel="stylesheet" href="./css/main.css" />
+    <script src=".//mdui/js/mdui.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/jquery.pjax.js"></script>
+    <script src="./js/jquery.md5.js"></script>
+    <script src="./js/clipboard.min.js"></script>
+    <script src="./js/main.js"></script>
+    <!--VueJs-->
+    <script src="./js/axios.min.js"></script>
+</head>
+<body>
+
+
+<div id="div1">
+    <!--音乐-->
+    <audio src="http://ting6.yymp3.net:82/new27/zhuzhuai/1.mp3" loop autoplay>
+        抱歉...您的浏览器暂不支持audio标签哦！
+    </audio>
+
+    <el-card class="box-card">
+        <div slot="header" class="clearfix">
+            <el-row>
+                <span style="font-size:40px"> 恋爱榜</span>
+                <el-button @click="addLoveFormVisible = true" style="float: right; padding: 3px 0;font-size:30px" type="text">上榜</el-button>
+            </el-row>
+        </div>
+
+        <div  class="text item">
+            <!--内容-->
+            <el-collapse v-model="activeLoveId" accordion>
+                <el-collapse-item  v-for="l in loves" :title="l.name1+' 和 '+l.name2" :name="l.id" >
+                    <div>{{l.content}}</div>
+                    <br>
+                    <el-progress :percentage="l.power"></el-progress>
+                    <el-row>
+                        <el-button  @click="renewLoveFormVisible = true;selectId = l.id;" type="danger" round>续约</el-button>
+                        <el-button  @click="helpLoveFormVisible = true;selectId = l.id;" style="text-align:right" type="primary" round>助力</el-button>
+                        <font color="red" v-if="l.lastTime!=null"> 上次续约: {{l.lastTime}}</font>
+                    </el-row>
+                </el-collapse-item>
+            </el-collapse>
+
+            <!--底部-->
+            <el-row style="text-align:center">
+                <el-button-group style="text-align:right">
+                    <el-button @click="nextPage(-1)" type="primary" icon="el-icon-arrow-left">上一页</el-button>
+                    <el-button @click="nextPage(1)" type="primary">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
+                </el-button-group>
+
+            </el-row>
+        </div>
+    </el-card>
+
+
+
+    <!--上榜对话框-->
+    <el-dialog title="恋爱信息" :visible.sync="addLoveFormVisible">
+        <el-form :model="love" >
+            <el-form-item label="你的名字" >
+                <el-input v-model="love.name1" ></el-input>
+            </el-form-item>
+            <el-form-item label="TA的名字" >
+                <el-input v-model="love.name2" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="对TA说的话" >
+                <el-input v-model="love.content" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="密码" >
+                <el-input v-model="love.password" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="验证码:" >
+                <el-input v-model="code" autocomplete="off"></el-input>
+                <img alt="点击更换验证码"  @click="getCapthca()" style="max-height: 100px;max-weith: 100px"  :src="captcha"/>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="addLoveFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="addLoveFormVisible = false;addLove();">确 定</el-button>
+        </div>
+    </el-dialog>
+
+
+    <!--助力对话框-->
+    <el-dialog title="恋爱续约: 每天一次" :visible.sync="helpLoveFormVisible">
+        <el-form :model="love" >
+            <el-form-item label="验证码:" >
+                <el-input v-model="code" autocomplete="off"></el-input>
+                <img @click="getCapthca()" style="max-height: 100px;max-weith: 100px"  :src="captcha"    />
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="helpLoveFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="helpLoveFormVisible = false;help();">确 定</el-button>
+        </div>
+    </el-dialog>
+
+    <!--续约对话框-->
+    <el-dialog title="恋爱续约: 每月一次" :visible.sync="renewLoveFormVisible">
+        <el-form :model="love" >
+            <el-form-item label="密码" >
+                <el-input v-model="love.password" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="验证码:" >
+                <el-input v-model="code" autocomplete="off"></el-input>
+                <img @click="getCapthca()" style="max-height: 100px;max-weith: 100px"  :src="captcha"    />
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="renewLoveFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="renewLoveFormVisible = false;renew();">确 定</el-button>
+        </div>
+    </el-dialog>
+
+
+
+</div>
+
+
+<script type="text/javascript">
+        new Vue({
+            el:"#div1",
+            data:{
+                <!--当前激活的恋爱-->
+                activeLoveId:"",
+                <!--上榜对话框监听器-->
+                addLoveFormVisible: false,
+                <!--助力对话框监听器-->
+                helpLoveFormVisible: false,
+                <!--续约对话框监听器-->
+                renewLoveFormVisible: false,
+                <!--通知-->
+                notice:{
+                    title: "恋爱榜规则",
+                    content: "爱意每天减1,无爱意时，将退榜！主人每月续约增加30，陌生人助力每台增加1"
+                },
+                page:1,
+                loves:[],
+                love: {
+                    id:"",
+                    name1:"",
+                    name2:"",
+                    password:"",
+                    content:""
+                },
+                code:"",
+                captcha:"",
+                <!--当前选中的恋爱ID-->
+                selectId:"",
+                formLabelWidth: '200px'
+            },
+            methods: {
+                 <!--通知-->
+                 openNotice() {
+                    var _this = this;
+                    this.$notify({
+                      title: _this.notice.title,
+                      message: _this.notice.content,
+                      type: 'success'
+                    });
+                  }
+                ,
+                <!--页数-->
+                nextPage(offer){
+                    var target = this.page+offer
+                    if(target < 1){
+                        alert("无上一页");
+                        return;
+                    }
+                    <!--触发页数监听器-->
+                    this.page = target;
+                },
+                <!--添加恋爱榜-->
+                addLove(){
+                    var _this = this;
+                    <!--创建一个表单对象-->
+                    var formData = new FormData()
+                    <!--Love所有属性-->
+                    for (const key in this.love) {
+                        formData.append(key,this.love[key])
+                    }
+                    <!--验证码-->
+                    formData.append("code",this.code)
+                    <!--POST表单请求头-->
+                    axios.post("/love/add.do",formData,
+                    {headers: {"content-type": "multipart/form-data"}
+                     }).then(function (response) {
+                        _this.addLoveFormVisible = false;
+                        <!--打印错误信息-->
+                        if(!response.data.flag){
+                            alert(response.data.message);
+                        }else{
+                            <!--刷新当前页面-->
+                            location.href="/love.html";
+                        }
+                    }).catch(function (err) {
+                        alert(err)
+                    });
+                },
+                <!--爱情续约-->
+                renew(){
+                    var _this = this;
+                    axios.get("/love/renewLove.do?id="+this.selectId+"&code="+this.code+"&password="+this.love.password).then(function (response) {
+
+                        if(!response.data.flag){
+                            <!--打印错误信息-->
+                            alert(response.data.message);
+                        }else{
+                            <!--刷新当前页面-->
+                            location.href="/love.html";
+                        }
+                    }).catch(function (err) {
+
+                    });
+                },
+                <!--爱情助力-->
+                help(){
+                    var _this = this;
+                    axios.get("/love/helpLove.do?id="+this.selectId+"&code="+this.code).then(function (response) {
+
+                        if(!response.data.flag){
+                            <!--打印错误信息-->
+                            alert(response.data.message);
+                        }else{
+                            <!--刷新当前页面-->
+                            location.href="/love.html";
+                        }
+                    }).catch(function (err) {
+
+                    });
+                }
+                ,
+                <!--获取验证码-->
+                getCapthca(){
+                        var _this = this;
+                        <!--获取验证吗-->
+                        axios.request({
+                             method:"GET",
+                            url:"/captcha",
+                            responseType: "blob"
+                        }).then(function (response) {
+                            <!--图片转换处理：二进制成BLOB方式显示-->
+                            _this.captcha = window.URL.createObjectURL(response.data);
+                        });
+                  }
+            },
+            <!--监听器-->
+            watch:{
+                <!--上榜对话框状态-->
+                "addLoveFormVisible":function(){
+                    <!--获取验证码: 当对话框打开时-->
+                    if(this.addLoveFormVisible == true){
+                        this.getCapthca();
+                    }
+                 },
+                <!--续约对话框状态-->
+                "renewLoveFormVisible":function(){
+                    <!--获取验证码: 当对话框打开时-->
+                    if(this.renewLoveFormVisible == true){
+                        this.getCapthca();
+                    }
+                 },
+                 <!--助力对话框状态-->
+                "helpLoveFormVisible":function(){
+                    <!--获取验证码: 当对话框打开时-->
+                    if(this.helpLoveFormVisible == true){
+                        this.getCapthca();
+                    }
+                 },
+                 <!--页数状态-->
+                 "page":function(){
+                    var _this = this;
+                    axios.get("/love/findByPage.do?page="+this.page).then(function (response) {
+                        if(response.data.data.length == 0){
+                            alert("无下一页!");
+                        }else{
+                            _this.loves = response.data.data;
+                        }
+                    }).catch(function (err) {
+                        alert(err)
+                    });
+                 }
+            }
+            ,
+            created(){
+                    var _this = this;
+                    <!--执行通知-->
+                    this.openNotice();
+                    <!--分页查询恋爱榜单-->
+                    axios.get("/love/findByPage.do?page=1").then(function (response) {
+                        _this.loves = response.data.data;
+                        if( _this.loves != null && _this.loves.length != 0){
+                            _this.activeLoveId = _this.loves[0].id;
+                        }
+                    }).catch(function (err) {
+                        alert(err)
+                    });
+             }
+        });
+</script>
+
+</body>
+</html>

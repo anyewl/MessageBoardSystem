@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <title>鄂大留言板</title>
+    <meta name="keywords" content="鄂大留言板">
+    <meta name="description" content="本表白墙献给最可爱的镜音双子！">
+
+
+
+    <!--ElementUI-->
+    <script src="./js/vue.min.js"></script>
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./elementui/index.css">
+    <!-- 引入组件库 -->
+    <script src="./elementui/index.js"></script>
+    <link rel="stylesheet" href="./mdui/css/mdui.min.css" />
+    <link rel="stylesheet" href="./css/main.css" />
+
+    <script src=".//mdui/js/mdui.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/jquery.pjax.js"></script>
+    <script src="./js/jquery.md5.js"></script>
+    <script src="./js/clipboard.min.js"></script>
+    <script src="./js/main.js"></script>
+    <!--VueJs-->
+    <script src="./js/axios.min.js"></script>
+</head>
+<body>
+
+
+<!--文章-->
+<div id="div1" class="mdui-card mdui-hoverable" style="border-radius: 16px;">
+
+
+
+
+    <div class="mdui-card-header">
+        <div class="mdui-card-header-avatar" v-for="t in tags" v-if="t.id==article.tagId">
+            <el-tag  effect="plain" :type="t.type"  >{{t.label}}</el-tag>
+        </div>
+        <div class="mdui-card-header-title">{{article.name}}</div>
+        <div class="mdui-card-header-subtitle">{{article.time}}</div>
+    </div>
+    <!--图片-->
+    <div class="mdui-card-media">
+        <!--自定义图片-->
+        <div v-if="article.imgSrc != '' && article.imgSrc != 'null'  && article.imgSrc != null ">
+            <img style="max-height: 2000px" :src="article.imgSrc"     />
+        </div>
+    </div>
+    <div class="mdui-card-primary">
+        <div class="mdui-card-primary-title">{{article.tag}}</div>
+        <div class="mdui-card-primary-subtitle"> {{article.contact}}   </div>
+        </br></br>
+        <pre>{{article.content}}</pre>
+    </div>
+    <div class="mdui-card-content" >
+
+
+        <div class="mdui-card" style="border-radius: 16px;">
+
+            <div class="mdui-card-primary">
+                <div class="mdui-card-primary-title">发表您的评论</div>
+                <div class="mdui-card-primary-subtitle">可以发表您的感想以及感受哦！</div>
+            </div>
+            <div class="mdui-card-content">
+                <div class="mdui-textfield">
+                    <label class="mdui-textfield-label">您的昵称</label>
+                    <input placeholder="芸" id="nickname" v-model="comment.name" class="mdui-textfield-input" type="text" />
+                </div>
+                <div class="mdui-textfield">
+                    <label class="mdui-textfield-label">你要说....</label>
+                    <textarea id="content" class="mdui-textfield-input" v-model="comment.content" rows="4" placeholder="加油！你一定能成功的！"></textarea>
+                </div>
+
+
+            </div>
+
+            <div class="mdui-card-actions">
+                <div class="mdui-textfield">
+                    <label class="mdui-textfield-label">验证码</label>
+
+                     <el-input  style="width:50%" v-model="code" placeholder="请输入验证吗"></el-input>
+
+                    <img @click="getCapthca()" alt="点击更换验证码" style="max-height: 100px;max-weith: 100px"  :src="captcha"    />
+
+                </div>
+
+                <HR align=center width="100%" color=#987cb9 SIZE=1>
+                <el-row style="text-align:center">
+                    <el-button @click="addComment()"type="success" >发射</el-button>
+                </el-row>
+
+            </div>
+        </div>
+        <br>
+        <!--评论-->
+        <div class="mdui-card" id="commentBoxMain" style="border-radius: 16px;">
+            <div class="mdui-card-primary">
+                <div class="mdui-card-primary-title">所有评论</div>
+                <div class="mdui-card-primary-subtitle">这些都是给信的主人的评论啦！</div>
+            </div>
+            <!--评论内容-->
+            <div id="commentBox" class="mdui-card-content" >
+                <div v-for="item in comments">
+
+                    <div class="mdui-card-primary-subtitle" > <font color="red"> {{item.name}} </font> 在{{item.date}} 的评论</div><br>{{item.content}}<br><br>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+            new Vue({
+                el:"#div1",
+                data:{
+                      tags: [],
+                      value: false,
+                      article: {},
+                      comments: [],
+                      comment:{},
+                      captcha:{},
+                      code:"",
+                      aid:""
+                },
+                methods:{
+                        <!--获取验证码-->
+                       getCapthca(){
+                            var _this = this;
+                            <!--获取验证吗-->
+                            axios.request({
+                                method:"GET",
+                                url:"/captcha",
+                                responseType: "blob"
+                            }).then(function (response) {
+                                _this.captcha = window.URL.createObjectURL(response.data);
+                            });
+                      },
+                      <!--添加评论-->
+                      addComment(){
+                              var _this = this;
+                              var formData = new FormData();
+                              for (const key in this.comment) {
+                                formData.append(key,this.comment[key])
+                              }
+                               formData.append("code",this.code);
+                               formData.append("aid",this.aid);
+                              axios.post("/comment/add.do", formData,
+                              {
+                                    headers: {"Content-type": "multipart/form-data"}
+                              }).then(function (response) {
+
+                                 <!--失败-->
+                                 if(!response.data.flag){
+                                    alert(response.data.message);
+                                 }else{<!--成功-->
+                                    location.reload();
+                                 }
+                              }).catch(function (err) {
+
+                              });
+                      }
+                }
+                ,
+                created(){
+                    var str = location.href;
+                    var index = str.indexOf("?");
+                    if(index != -1){
+                        var id = str.substring(index+4);
+                        this.aid = id;
+                        var _this = this;
+                        <!--获取验证吗-->
+                        this.getCapthca();
+                        <!--获取所有的标签-->
+                        axios.get("/tag/findAll.do").then(function (response) {
+                            _this.tags = response.data.data;
+                            for(var i = 0 ; i < _this.tags.length ; i++ ){
+                                var tag = _this.tags[i];
+                                if(tag["id"]==1024){
+                                    _this.tags[i]["type"] = "danger";
+                                }else{
+                                    _this.tags[i]["type"] = "";
+                                }
+                            }
+                        }).catch(function (err) {
+                            alert(err)
+                        });
+                        <!--获取文章内容-->
+                        axios.get("/article/findById.do", {
+                            params:{
+                                "id":id
+                            }
+                        }).then(function (response) {
+                            _this.article = response.data.data;
+                        }).catch(function (err) {
+                        });
+                        <!--获取评论内容-->
+                        axios.get("/comment/findByAid.do", {
+                            params:{
+                                "aid":id
+                            }
+                        }).then(function (response) {
+                            _this.comments = response.data.data;
+                        }).catch(function (err) {
+                        });
+                    }
+    		    }
+            });
+        </script>
+
+</body>
+</html>

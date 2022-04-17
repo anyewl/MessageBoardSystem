@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>商品编辑</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+
+
+  
+
+
+
+	<!--ElementUI-->
+	<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+
+	<!-- 引入样式 -->
+	<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	<!-- 引入组件库 -->
+	<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    
+
+
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    
+      
+    
+    
+</head>
+
+<body class="hold-transition skin-red sidebar-mini" >
+
+
+
+            <!-- 正文区域 -->
+            <section class="content" id="div1">
+
+                <div class="box-body">
+
+                    <!--tab页-->
+                    <div class="nav-tabs-custom">
+
+                        <!--tab头/-->
+						<el-main>
+
+							<el-upload
+									class="upload-demo"
+									ref="upload"
+									action="localhost:8081/article/add"
+									:limit="100"
+									:multiple="true"
+									list-type="picture"
+									:auto-upload="false">
+								<el-button slot="trigger" size="small" type="primary" >选取文件</el-button>
+								<el-button @click="submitUpload" type="primary">上传<i class="el-icon-upload el-icon--right"></i></el-button>
+							</el-upload>
+						</el-main>
+                        <!--tab内容-->
+
+                        <!--tab内容/-->
+						<!--表单内容/-->
+							 
+                    </div>
+                 	
+                 	
+                 	
+                 	
+                   </div>
+
+			
+            </section>
+            
+
+
+            
+
+<script>
+    new Vue({
+        el:'#div1', //表示当前vue对象接管了div区域
+		methods:{
+		   submitUpload(){
+
+				  // 通过 FormData 对象上传文件
+				  var formData = new FormData();
+				  var hasPic = false;
+				  this.$refs.upload.uploadFiles.forEach((file) => {
+				  		hasPic = true;
+						formData.append("file", file.raw);
+				  });
+
+				  if(!hasPic){
+				  	 alert("未选择图片");
+				  	 return;
+				  }
+
+				  var _this = this;
+				  axios.post("http://localhost:8081/admin/picture/add.do", formData,
+				  {
+						headers: {"content-type": "multipart/form-data"}
+				  }).then(function (response) {
+					 alert(response.data.message)
+					 if(response.data.flag){
+						window.location.href = '/admin/pictures.html';
+					 }
+				  }).catch(function (err) {
+						alert(err);
+				  });
+		  }
+		},
+        <!--页面加载时: 发送请求-->
+        created(){
+			var str = location.href;
+			var index = str.indexOf("?");
+			if(index != -1){
+				var id = str.substring(index+4);
+				var _this = this;
+				axios.get("/score/findById.do", {
+					params:{
+						"id":id
+					}
+				}).then(function (response) {
+					_this.score = response.data.datas;
+				}).catch(function (err) {
+				});
+			}
+		}
+    });
+</script>
+       
+</body>
+
+</html>

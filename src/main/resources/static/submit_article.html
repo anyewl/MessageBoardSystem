@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <title>鄂大留言板</title>
+    <meta name="keywords" content="鄂大留言板">
+    <meta name="description" content="本表白墙献给最可爱的镜音双子！">
+
+
+
+    <!--ElementUI-->
+    <script src="./js/vue.min.js"></script>
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./elementui/index.css">
+    <!-- 引入组件库 -->
+    <script src="./elementui/index.js"></script>
+    <link rel="stylesheet" href="./mdui/css/mdui.min.css" />
+    <link rel="stylesheet" href="./css/main.css" />
+
+    <script src=".//mdui/js/mdui.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/jquery.pjax.js"></script>
+    <script src="./js/jquery.md5.js"></script>
+    <script src="./js/clipboard.min.js"></script>
+    <script src="./js/main.js"></script>
+    <!--VueJs-->
+    <script src="./js/axios.min.js"></script>
+</head>
+<body>
+
+
+<div id="div1">
+    <div class="mdui-card-primary">
+        <div class="mdui-card-primary-title">留言</div>
+        <div class="mdui-card-primary-subtitle">快向你喜欢的TA表白吧！</div>
+    </div>
+    <div class="mdui-divider"></div>
+    <div class="mdui-card-content">
+        <div class="mdui-textfield">
+            <label class="mdui-textfield-label">联系方式</label>
+            <textarea id="qq" class="mdui-textfield-input" placeholder="可以省略" v-model="article.contact"></textarea>
+        </div>
+        <div class="mdui-textfield">
+            <label class="mdui-textfield-label">你的名字</label>
+            <textarea id="name" class="mdui-textfield-input" placeholder="芸" v-model="article.name"></textarea>
+        </div>
+        <div class="mdui-textfield">
+            <label class="mdui-textfield-label">标签</label>
+            <template>
+                <el-select v-model="article.tagId" placeholder="请选择">
+                    <el-option
+                            v-for="t in tags"
+                            :key="t.id"
+                            :label="t.label"
+                            :value="t.id"
+                            :disabled="t.disabled"
+                            :type="t.type"
+                    >
+                    </el-option>
+                </el-select>
+            </template>
+        </div>
+        <div class="mdui-textfield">
+            <label class="mdui-textfield-label">配图（可选）</label>
+            <div class="mdui-row">
+                <el-upload
+                        class="upload-demo"
+                        ref="upload"
+                        action="/article/add"
+                        :limit="1"
+                        :multiple="false"
+                        :auto-upload="false">
+                    <el-button slot="trigger" size="small" type="primary" >选取文件</el-button>
+                </el-upload>
+            </div>
+        </div>
+        <div class="mdui-textfield">
+            <label class="mdui-textfield-label">随机图片（默认关闭）</label>
+            <el-switch
+                    v-model="article.random"
+                    active-color="#13ce66"
+                    inactive-color="#ff4949">
+            </el-switch>
+        </div>
+        <div class="mdui-textfield">
+            <label class="mdui-textfield-label">内容</label>
+            <textarea id="introduceTA" class="mdui-textfield-input" placeholder="只有芸知道！" v-model="article.content"></textarea>
+        </div>
+        <div class="mdui-textfield">
+            <label class="mdui-textfield-label">验证码</label>
+            <el-input style="width:50%"  v-model="code" placeholder="请输入验证吗"></el-input>
+            <img @click="getCapthca()" alt="点击更换验证码" style="max-height: 100px;max-weith: 100px"  :src="captcha"    />
+
+        </div>
+    </div>
+    <HR align=center width="100%" color=#987cb9 SIZE=1>
+
+
+    <div class="mdui-card-actions">
+
+
+        <el-row style="text-align:center">
+            <el-button @click="submitUpload()" type="success" >发射</el-button>
+        </el-row>
+    </div>
+</div>
+<!--VueJS-->
+<script type="text/javascript">
+        new Vue({
+            el:"#div1",
+            data:{
+                  article : {tagId:"1",random:"false"},
+                  tags:[{id:"1",label:"交友"},{id:"2",label:"学习"}],
+                  captcha:{},
+                  code:""
+            },
+            methods: {
+                  submitUpload(){
+                          var _file;
+                          this.$refs.upload.uploadFiles.forEach((file) => {
+                                _file = file.raw;
+                          });
+                          var isLt2M = true;
+                          if( typeof(_file) != "undefined" ){
+                              isLt2M  = _file.size / 1024 / 1024 < 2;
+                          }
+                          // 通过 FormData 对象上传文件
+                          var formData = new FormData()
+                          for (const key in this.article) {
+                            formData.append(key,this.article[key])
+                          }
+                          formData.append("code",this.code)
+
+                          if( typeof(_file) != "undefined" ){
+                              formData.append("file", _file);
+                          }
+
+
+                          if (!isLt2M) {
+                            alert("请上传2M以下!");
+                            return false;
+                          }
+
+                          var _this = this;
+                          axios.post("/article/add.do", formData,
+                          {
+                                headers: {"content-type": "multipart/form-data"}
+                          }).then(function (response) {
+                             if(!response.data.flag){
+                                alert(response.data.message);
+                             }else{
+                                parent.location.href="/index.html";
+                             }
+                          }).catch(function (err) {
+
+                          });
+                  },
+                  getCapthca(){
+                        var _this = this;
+                        <!--获取验证吗-->
+                        axios.request({
+                             method:"GET",
+                            url:"/captcha",
+                            responseType: "blob"
+                        }).then(function (response) {
+                            _this.captcha = window.URL.createObjectURL(response.data);
+                        });
+                  }
+                  ,
+                  handleRemove(file, fileList) {
+                    console.log(file, fileList);
+                  },
+                  handlePreview(file) {
+                    console.log(file);
+                  }
+            }
+            ,
+            created(){
+                    var _this = this;
+                    <!--获取验证吗-->
+                    this.getCapthca();
+                    <!--获取标签-->
+                    axios.get("/tag/findAll.do").then(function (response) {
+                        _this.tags = response.data.data;
+                        <!--禁止选择官方-->
+                        for(var i = 0 ; i < _this.tags.length ; i++ ){
+                            var tag = _this.tags[i];
+                            if(tag["id"]==1024){
+                                _this.tags[i]["disabled"] = true;
+                            }
+                        }
+                    }).catch(function (err) {
+                        alert(err);
+                    });
+             }
+
+        });
+    </script>
+
+</body>
+</html>
