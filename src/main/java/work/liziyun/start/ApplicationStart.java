@@ -3,6 +3,7 @@ package work.liziyun.start;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 import work.liziyun.dao.PictureDao;
 import work.liziyun.dao.TagDao;
@@ -14,6 +15,7 @@ import java.util.Random;
 import java.util.Set;
 
 @Component
+
 public class ApplicationStart implements ApplicationRunner {
 
     @Autowired

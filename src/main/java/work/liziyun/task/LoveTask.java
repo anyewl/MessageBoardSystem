@@ -16,6 +16,7 @@ public class LoveTask {
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void downLovewPower(){
+        System.out.println("执行定时任务");
         // 所有爱意减少一
         loveDao.downOnePower();
         // 删除无爱意
