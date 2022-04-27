@@ -9,7 +9,7 @@
 
 # 项目简介：
 
-···
+```
  无需登陆注册，通关验证码和Cookie控制安全。
  两个模块：留言板 和 恋爱榜
  留言板：
@@ -26,17 +26,22 @@
      陌生人：
 	每天为爱助力增加1爱意值。
              每天最多可以被10个人助力！
-···
+```
 
 # 技术简介：
 
+```
  前端: Vue2.0 ElementUI MDUI
  后端: SpringBoot SpringMVC Hibernate 
+```
+
 # 个人简介:
 
+```
 鄂州职业大学20级计算机
 微信公众号：小豆的奇思妙想
 B站UP：李滋芸
 个人笔记网站: liziyun.work:10086
 手写Java前端编译器：
     github.com/anyewl/LzyJavac
+```
